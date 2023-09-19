@@ -1,4 +1,5 @@
 package mlb;
+import java.io.IOException;
 /**
  * @author Roman Yasinovskyy
  */
@@ -10,8 +11,9 @@ import java.util.logging.Logger;
 public class DatabaseWriterDriver {
     /**
      * @param args the command line arguments
+     * @throws IOException
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         DatabaseWriter dw = new DatabaseWriter();
         String db_filename = "mlb.sqlite";
         if (args.length != 0) {

@@ -3,15 +3,22 @@ package mlb;
  * @author Roman Yasinovskyy
  */
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 @JsonIgnoreProperties(ignoreUnknown = true)
 
 public class Team {
     // TODO: Use JsonProperty correctly
+    @JsonProperty("id")
     private final String id;
+    @JsonProperty("abbreviation")
     private final String abbreviation;
+    @JsonProperty("name")
     private final String name;
+    @JsonProperty("conference")
     private final String conference;
+    @JsonProperty("division")
     private final String division;
     private ArrayList<Player> roster;
     private Address address;
@@ -117,7 +124,19 @@ public class Team {
      */
     @Override
     public String toString() {
-        // TODO: Implement this method
-        throw new UnsupportedOperationException();
+        StringBuilder sb = new StringBuilder();
+        sb.append(name).append("\n");
+        sb.append(conference).append(" | ").append(division).append("\n");
+        if (address != null) {
+            sb.append(address.getSite()).append("\n");
+            sb.append(address.getStreet()).append("\n");
+            sb.append(address.getCity()).append(", ").append(address.getState()).append(" ").append(address.getZip()).append("\n");
+            sb.append(address.getPhone()).append("\n");
+            sb.append(address.getUrl()).append("\n");
+        }
+        if (roster != null) {
+            sb.append("Roster size: ").append(roster.size());
+        }
+        return sb.toString();
     }
 }

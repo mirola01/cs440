@@ -44,12 +44,12 @@ public class Player {
     public String getPosition() {
         return this.position;
     }
+    
     /**
      * @return Player as a String
      */
     @Override
     public String toString() {
-        // TODO: Implement this method
-        throw new UnsupportedOperationException();
+        return String.format("%s plays for %s", name, team);
     }
 }

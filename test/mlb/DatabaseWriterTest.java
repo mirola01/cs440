@@ -1,4 +1,5 @@
 package mlb;
+import java.io.IOException;
 /**
  * @author Roman Yasinovskyy
  */
@@ -61,9 +62,10 @@ public class DatabaseWriterTest {
 
     /**
      * Test of readPlayerFromCsv method, of class DatabaseWriter.
+     * @throws IOException
      */
     @Test
-    public void testReadPlayerFromCsv() {
+    public void testReadPlayerFromCsv() throws IOException {
         System.out.println("readPlayerFromCsv");
         String filename = "data/mlb/players.csv";
         DatabaseWriter instance = new DatabaseWriter();

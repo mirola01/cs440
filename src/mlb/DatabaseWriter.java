@@ -58,8 +58,16 @@ public class DatabaseWriter {
         try {
             Scanner fs = new Scanner(new File(filename));
             while (fs.hasNextLine()) {
-                // TODO: Parse each line into an object of type Address and add it to the ArrayList
-                fs.nextLine();
+                String team = fs.next();
+                String arena = fs.next();
+                String street = fs.next();
+                String city = fs.next();
+                String state = fs.next();
+                String zip = fs.next();
+                String phone = fs.next();
+                String url = fs.next();
+                Address address = new Address(team, arena, street, city, state, zip, phone, url);
+                addressBook.add(address);
             }
         } catch (IOException ex) {
             Logger.getLogger(DatabaseReader.class.getName()).log(Level.SEVERE, null, ex);
@@ -67,11 +75,17 @@ public class DatabaseWriter {
         
         return addressBook;
     }
-    public ArrayList<Player> readPlayerFromCsv(String filename) {
+    public ArrayList<Player> readPlayerFromCsv(String filename) throws IOException {
         ArrayList<Player> roster = new ArrayList<>();
-        CSVReader reader = null;
-        // TODO: Read the CSV file, create an object of type Player from each line and add it to the ArrayList
-        
+        CSVReader reader = new CSVReader(new FileReader(filename));
+
+        String[] nextLine;
+        while ((nextLine = reader.readNext()) != null) {
+            if (nextLine.length >= 4){
+                Player player = new Player(nextLine[0], nextLine[1], nextLine[2], nextLine[3]);
+                roster.add(player);
+        }}
+        reader.close();
         return roster;
     }
     /**
@@ -133,6 +147,7 @@ public class DatabaseWriter {
             for (int len; (len = fileInStream.read(buffer)) != -1;) {
                 byteArrOutStream.write(buffer, 0, len);
             }
+            fileInStream.close();
         } catch (FileNotFoundException e) {
             System.err.println(e.getMessage());
         } catch (IOException e2) {
@@ -147,14 +162,20 @@ public class DatabaseWriter {
      */
     public void writeTeamTable(String db_filename, ArrayList<Team> league) throws SQLException {
         Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
-        // TODO: Write an SQL statement to insert a new team into a table
-        String sql = "";
+        Statement statement = db_connection.createStatement();
+        statement.execute("PRAGMA foreign_keys = ON;");
+        String sql = "INSERT INTO team(id, abbr, name, conference, division, logo) VALUES(?, ?, ?, ?, ?, ?)";
         for (Team team: league) {
             PreparedStatement statement_prepared = db_connection.prepareStatement(sql);
-            // TODO: match parameters of the SQL statement and team id, abbreviation, name, conference, division, and logo
+            statement_prepared.setString(1, team.getId());
+            statement_prepared.setString(2, team.getAbbreviation());
+            statement_prepared.setString(3, team.getName());
+            statement_prepared.setString(4, team.getConference());
+            statement_prepared.setString(5, team.getDivision());
+            statement_prepared.setBytes(6, team.getLogo());
             statement_prepared.executeUpdate();
         }
-        
+        db_connection.commit();
         db_connection.close();
     }
     /**
@@ -164,14 +185,20 @@ public class DatabaseWriter {
      */
     public void writeAddressTable(String db_filename, ArrayList<Address> addressBook) throws SQLException {
         Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
+        String sql = "INSERT INTO address(team, site, street, city, state, zip, phone, url) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
         for (Address address: addressBook) {
-            // TODO: Write an SQL statement to insert a new address into a table
-            String sql = "";
             PreparedStatement statement_prepared = db_connection.prepareStatement(sql);
-            // TODO: match parameters of the SQL statement and address site, street, city, state, zip, phone, and url
+            statement_prepared.setString(1, address.getTeam());
+            statement_prepared.setString(2, address.getSite());
+            statement_prepared.setString(3, address.getStreet());
+            statement_prepared.setString(4, address.getCity());
+            statement_prepared.setString(5, address.getState());
+            statement_prepared.setString(6, address.getZip());
+            statement_prepared.setString(7, address.getPhone());
+            statement_prepared.setString(8, address.getUrl());
             statement_prepared.executeUpdate();
         }
-        
+        db_connection.commit();
         db_connection.close();
     }
     /**
@@ -181,11 +208,13 @@ public class DatabaseWriter {
      */
     public void writePlayerTable(String db_filename, ArrayList<Player> roster) throws SQLException {
         Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
+        String sql = "INSERT INTO player(id, name, team, position) VALUES(?, ?, ?, ?)";
         for (Player player: roster) {
-            // TODO: Write an SQL statement to insert a new player into a table
-            String sql = "";
             PreparedStatement statement_prepared = db_connection.prepareStatement(sql);
-            // TODO: match parameters of the SQL statement and player id, name, position
+            statement_prepared.setString(1, player.getId());
+            statement_prepared.setString(2, player.getName());
+            statement_prepared.setString(3, player.getPosition());
+            statement_prepared.setString(4, player.getTeam());
             statement_prepared.executeUpdate();
         }
         

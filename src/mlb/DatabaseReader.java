@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.sql.PreparedStatement;
 
 public class DatabaseReader {
     private Connection db_connection;
@@ -47,9 +48,13 @@ public class DatabaseReader {
         this.connect();
         try {
             stat = this.db_connection.createStatement();
-            // TODO: Write an SQL statement to retrieve a league (conference) and a division
-            String sql = "";
-            // TODO: Add all 6 combinations to the ArrayList divisions
+            String sql = "SELECT DISTINCT division FROM team;";
+            results = stat.executeQuery(sql);
+            while (results.next()) {
+                divisions.add(results.getString("division"));
+            }
+            
+            results.close();
         } catch (SQLException ex) {
             Logger.getLogger(DatabaseReader.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
@@ -70,10 +75,14 @@ public class DatabaseReader {
         this.connect();
         try {
             stat = this.db_connection.createStatement();
-            // TODO: Write an SQL statement to retrieve a teams from a specific division
-            String sql = "";
+            String sql = "SELECT name FROM team WHERE division = ?;";
+            PreparedStatement statement_prepared = db_connection.prepareStatement(sql);
+            statement_prepared.setString(1, division);
+
             results = stat.executeQuery(sql);
-            // TODO: Add all 5 teams to the ArrayList teams
+            while (results.next()) {
+                teams.add(results.getString("name"));
+            }
             results.close();
         } catch (SQLException ex) {
             Logger.getLogger(DatabaseReader.class.getName()).log(Level.SEVERE, null, ex);
@@ -86,8 +95,31 @@ public class DatabaseReader {
      * @return Team info
      */
     public Team getTeamInfo(String teamName) {
-        Team team = null;
-        // TODO: Retrieve team info (roster, address, and logo) from the database
-        return team;
+        Statement stat;
+    ResultSet results;
+    Team team = null;
+    ArrayList<Player> roster = new ArrayList<>();
+    Address address = null;
+
+    this.connect();
+    try {
+        // Retrieve team info
+        stat = this.db_connection.createStatement();
+        String sql = "SELECT * FROM team WHERE name = ?;";
+        PreparedStatement statement_prepared = db_connection.prepareStatement(sql);
+        statement_prepared.setString(1, teamName);
+        
+        results = statement_prepared.executeQuery();
+        
+        team = new Team(results.getString("id"), results.getString("abbr"), results.getString("name"), results.getString("conference"), results.getString("division"));
+        team.setLogo(results.getBytes("logo"));
+        results.close();
+    } catch (SQLException ex) {
+        Logger.getLogger(DatabaseReader.class.getName()).log(Level.SEVERE, null, ex);
+    } finally {
+        this.disconnect();
+    }
+    
+    return team;
     }
 }
