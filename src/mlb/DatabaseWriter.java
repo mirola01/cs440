@@ -7,6 +7,8 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +21,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +37,7 @@ public class DatabaseWriter {
         ObjectMapper mapper = new ObjectMapper();
         JsonFactory jsonFactory = new JsonFactory();
         JsonParser jsonParser;
-        
+
         try {
             jsonParser = jsonFactory.createParser(new File(filename));
             jsonParser.nextToken();
@@ -46,7 +49,7 @@ public class DatabaseWriter {
         } catch (IOException ex) {
             Logger.getLogger(DatabaseReader.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return league;
     }
     /**
@@ -58,16 +61,11 @@ public class DatabaseWriter {
         try {
             Scanner fs = new Scanner(new File(filename));
             while (fs.hasNextLine()) {
-                String team = fs.next();
-                String arena = fs.next();
-                String street = fs.next();
-                String city = fs.next();
-                String state = fs.next();
-                String zip = fs.next();
-                String phone = fs.next();
-                String url = fs.next();
-                Address address = new Address(team, arena, street, city, state, zip, phone, url);
+                String[] parts = fs.nextLine().split("\t");
+                Address address = new Address(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]);
                 addressBook.add(address);
+                System.out.println("Line read: " + address);
+                System.out.println("Address created: " + address.toString());
             }
         } catch (IOException ex) {
             Logger.getLogger(DatabaseReader.class.getName()).log(Level.SEVERE, null, ex);
@@ -77,16 +75,21 @@ public class DatabaseWriter {
     }
     public ArrayList<Player> readPlayerFromCsv(String filename) throws IOException {
         ArrayList<Player> roster = new ArrayList<>();
-        CSVReader reader = new CSVReader(new FileReader(filename));
-
-        String[] nextLine;
-        while ((nextLine = reader.readNext()) != null) {
-            if (nextLine.length >= 4){
-                Player player = new Player(nextLine[0], nextLine[1], nextLine[2], nextLine[3]);
+    
+    try (
+        FileReader fileReader = new FileReader(filename);
+        CSVReader reader = new CSVReaderBuilder(fileReader).build()
+    ) {
+        String[] row;
+        while ((row = reader.readNext()) != null) {
+            if (row.length >= 5) { 
+                Player player = new Player(row[0], row[1], row[4], row[2]);
                 roster.add(player);
-        }}
-        reader.close();
-        return roster;
+            }
+        }
+    }
+    
+    return roster;
     }
     /**
      * Create tables cities and teams
@@ -220,4 +223,11 @@ public class DatabaseWriter {
         
         db_connection.close();
     }
+    public static void main(String[] args) {
+        String filename = "data/mlb/teams.json";
+        DatabaseWriter instance = new DatabaseWriter();
+        ArrayList<Address> result = instance.readAddressFromTxt(filename);
+        System.out.println("result");
+        System.out.println(result);
+      }
 }

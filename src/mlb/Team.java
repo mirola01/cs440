@@ -9,7 +9,6 @@ import java.util.ArrayList;
 @JsonIgnoreProperties(ignoreUnknown = true)
 
 public class Team {
-    // TODO: Use JsonProperty correctly
     @JsonProperty("id")
     private final String id;
     @JsonProperty("abbreviation")
@@ -22,6 +21,7 @@ public class Team {
     private final String division;
     private ArrayList<Player> roster;
     private Address address;
+    @JsonProperty("logo")
     private byte[] logo;
     /**
      * Default class constructor.

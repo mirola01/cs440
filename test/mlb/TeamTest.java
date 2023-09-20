@@ -57,6 +57,7 @@ public class TeamTest {
             for (int len; (len = fileInStream.read(buffer)) != -1;) {
                 byteArrOutStream.write(buffer, 0, len);
             }
+            fileInStream.close();
         } catch (FileNotFoundException fnfe) {
             System.err.println(fnfe.getMessage());
         } catch (IOException ioe) {
