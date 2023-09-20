@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -32,8 +33,8 @@ public class DatabaseWriter {
      * @param filename (JSON file)
      * @return League
      */
-    public ArrayList<Team> readTeamFromJson(String filename) {
-        ArrayList<Team> league = new ArrayList<>();
+    public ArrayList < Team > readTeamFromJson(String filename) {
+        ArrayList < Team > league = new ArrayList < > ();
         ObjectMapper mapper = new ObjectMapper();
         JsonFactory jsonFactory = new JsonFactory();
         JsonParser jsonParser;
@@ -56,40 +57,42 @@ public class DatabaseWriter {
      * @param filename (TXT file)
      * @return Addresses
      */
-    public ArrayList<Address> readAddressFromTxt(String filename) {
-        ArrayList<Address> addressBook = new ArrayList<>();
+    public ArrayList < Address > readAddressFromTxt(String filename) {
+        ArrayList < Address > addressBook = new ArrayList < > ();
         try {
             Scanner fs = new Scanner(new File(filename));
             while (fs.hasNextLine()) {
                 String[] parts = fs.nextLine().split("\t");
-                Address address = new Address(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]);
-                addressBook.add(address);
-                System.out.println("Line read: " + address);
-                System.out.println("Address created: " + address.toString());
+                if (parts.length >= 8) { 
+                    Address address = new Address(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]);
+                    addressBook.add(address);
+                    System.out.println("Line read: " + address);
+                    System.out.println("Address created: " + address.toString());
+                } else {
+                    System.out.println("Skipping line: not enough data");
+                }
             }
-        } catch (IOException ex) {
-            Logger.getLogger(DatabaseReader.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (FileNotFoundException e) {
+            Logger.getLogger(DatabaseWriter.class.getName()).log(Level.SEVERE, null, e);
         }
-        
         return addressBook;
     }
-    public ArrayList<Player> readPlayerFromCsv(String filename) throws IOException {
-        ArrayList<Player> roster = new ArrayList<>();
-    
-    try (
-        FileReader fileReader = new FileReader(filename);
-        CSVReader reader = new CSVReaderBuilder(fileReader).build()
-    ) {
-        String[] row;
-        while ((row = reader.readNext()) != null) {
-            if (row.length >= 5) { 
-                Player player = new Player(row[0], row[1], row[4], row[2]);
-                roster.add(player);
+    public ArrayList < Player > readPlayerFromCsv(String filename) throws IOException {
+        ArrayList < Player > roster = new ArrayList < > ();
+
+        try (
+            FileReader fileReader = new FileReader(filename); CSVReader reader = new CSVReaderBuilder(fileReader).build()
+        ) {
+            String[] row;
+            while ((row = reader.readNext()) != null) {
+                if (row.length >= 5) {
+                    Player player = new Player(row[0], row[1], row[4], row[2]);
+                    roster.add(player);
+                }
             }
         }
-    }
-    
-    return roster;
+
+        return roster;
     }
     /**
      * Create tables cities and teams
@@ -99,43 +102,43 @@ public class DatabaseWriter {
     public void createTables(String db_filename) throws SQLException {
         Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
         Statement statement = db_connection.createStatement();
-        
+
         statement.executeUpdate("DROP TABLE IF EXISTS team;");
-        statement.executeUpdate("CREATE TABLE team ("
-                            + "idpk INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                            + "id TEXT NOT NULL,"
-                            + "abbr TEXT NOT NULL,"
-                            + "name TEXT NOT NULL,"
-                            + "conference TEXT NOT NULL,"
-                            + "division TEXT NOT NULL,"
-                            + "logo BLOB);");
-        
+        statement.executeUpdate("CREATE TABLE team (" +
+            "idpk INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+            "id TEXT NOT NULL," +
+            "abbr TEXT NOT NULL," +
+            "name TEXT NOT NULL," +
+            "conference TEXT NOT NULL," +
+            "division TEXT NOT NULL," +
+            "logo BLOB);");
+
         statement.execute("PRAGMA foreign_keys = ON;");
-        
+
         statement.executeUpdate("DROP TABLE IF EXISTS player;");
-        statement.executeUpdate("CREATE TABLE player ("
-                            + "idpk INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                            + "id TEXT NOT NULL,"
-                            + "name TEXT NOT NULL,"
-                            + "team TEXT NOT NULL,"
-                            + "position TEXT NOT NULL,"
-                            + "FOREIGN KEY (team) REFERENCES team(idpk));");
+        statement.executeUpdate("CREATE TABLE player (" +
+            "idpk INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+            "id TEXT NOT NULL," +
+            "name TEXT NOT NULL," +
+            "team TEXT NOT NULL," +
+            "position TEXT NOT NULL," +
+            "FOREIGN KEY (team) REFERENCES team(idpk));");
 
         statement.executeUpdate("DROP TABLE IF EXISTS address;");
-        statement.executeUpdate("CREATE TABLE address ("
-                            + "idpk INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,"
-                            + "team TEXT NOT NULL,"
-                            + "site TEXT NOT NULL,"
-                            + "street TEXT NOT NULL,"
-                            + "city TEXT NOT NULL,"
-                            + "state TEXT NOT NULL,"
-                            + "zip TEXT NOT NULL,"
-                            + "phone TEXT NOT NULL,"
-                            + "url TEXT NOT NULL,"
-                            + "FOREIGN KEY (team) REFERENCES team(idpk));");
+        statement.executeUpdate("CREATE TABLE address (" +
+            "idpk INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+            "team TEXT NOT NULL," +
+            "site TEXT NOT NULL," +
+            "street TEXT NOT NULL," +
+            "city TEXT NOT NULL," +
+            "state TEXT NOT NULL," +
+            "zip TEXT NOT NULL," +
+            "phone TEXT NOT NULL," +
+            "url TEXT NOT NULL," +
+            "FOREIGN KEY (team) REFERENCES team(idpk));");
         db_connection.close();
     }
-   /**
+    /**
      * Read the file and returns the byte array
      * @param filename
      * @return the bytes of the file
@@ -147,7 +150,8 @@ public class DatabaseWriter {
             FileInputStream fileInStream = new FileInputStream(fileIn);
             byte[] buffer = new byte[1024];
             byteArrOutStream = new ByteArrayOutputStream();
-            for (int len; (len = fileInStream.read(buffer)) != -1;) {
+            for (int len;
+                (len = fileInStream.read(buffer)) != -1;) {
                 byteArrOutStream.write(buffer, 0, len);
             }
             fileInStream.close();
@@ -163,7 +167,7 @@ public class DatabaseWriter {
      * @param league 
      * @throws java.sql.SQLException 
      */
-    public void writeTeamTable(String db_filename, ArrayList<Team> league) throws SQLException {
+    public void writeTeamTable(String db_filename, ArrayList < Team > league) throws SQLException {
         Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
         Statement statement = db_connection.createStatement();
         statement.execute("PRAGMA foreign_keys = ON;");
@@ -186,48 +190,85 @@ public class DatabaseWriter {
      * @param addressBook 
      * @throws java.sql.SQLException 
      */
-    public void writeAddressTable(String db_filename, ArrayList<Address> addressBook) throws SQLException {
-        Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
-        String sql = "INSERT INTO address(team, site, street, city, state, zip, phone, url) VALUES(?, ?, ?, ?, ?, ?, ?, ?)";
-        for (Address address: addressBook) {
-            PreparedStatement statement_prepared = db_connection.prepareStatement(sql);
-            statement_prepared.setString(1, address.getTeam());
-            statement_prepared.setString(2, address.getSite());
-            statement_prepared.setString(3, address.getStreet());
-            statement_prepared.setString(4, address.getCity());
-            statement_prepared.setString(5, address.getState());
-            statement_prepared.setString(6, address.getZip());
-            statement_prepared.setString(7, address.getPhone());
-            statement_prepared.setString(8, address.getUrl());
-            statement_prepared.executeUpdate();
+    public void writeAddressTable(String dbFilename, ArrayList < Address > addressBook) throws SQLException {
+        try (
+            Connection dbConnection = DriverManager.getConnection(SQLITEDBPATH + dbFilename); Statement statement = dbConnection.createStatement()
+        ) {
+            statement.execute("PRAGMA foreign_keys = ON;");
+            dbConnection.setAutoCommit(false);
+
+            String sql = "INSERT INTO address(idpk, team, site, street, city, state, zip, phone, url) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement preparedStatement = dbConnection.prepareStatement(sql)) {
+                for (Address address: addressBook) {
+                    ResultSet results = statement.executeQuery("SELECT idpk FROM team WHERE team.name = '" + address.getTeam() + "';");
+
+                    if (results.next()) {
+                        int idpk = results.getInt(1);
+                        preparedStatement.setInt(1, idpk);
+                        preparedStatement.setString(2, address.getTeam());
+                        preparedStatement.setString(3, address.getSite());
+                        preparedStatement.setString(4, address.getStreet());
+                        preparedStatement.setString(5, address.getCity());
+                        preparedStatement.setString(6, address.getState());
+                        preparedStatement.setString(7, address.getZip());
+                        preparedStatement.setString(8, address.getPhone());
+                        preparedStatement.setString(9, address.getUrl());
+                        preparedStatement.executeUpdate();
+                    } else {
+                        System.out.println("Error: Team " + address.getTeam() + " not found in the database.");
+                    }
+                }
+                dbConnection.commit();
+            } catch (SQLException e) {
+                dbConnection.rollback();
+                throw e;
+            }
         }
-        db_connection.commit();
-        db_connection.close();
     }
     /**
      * @param db_filename 
      * @param roster 
      * @throws java.sql.SQLException 
      */
-    public void writePlayerTable(String db_filename, ArrayList<Player> roster) throws SQLException {
-        Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
-        String sql = "INSERT INTO player(id, name, team, position) VALUES(?, ?, ?, ?)";
-        for (Player player: roster) {
-            PreparedStatement statement_prepared = db_connection.prepareStatement(sql);
-            statement_prepared.setString(1, player.getId());
-            statement_prepared.setString(2, player.getName());
-            statement_prepared.setString(3, player.getPosition());
-            statement_prepared.setString(4, player.getTeam());
-            statement_prepared.executeUpdate();
+    public void writePlayerTable(String db_filename, ArrayList < Player > roster) throws SQLException {
+        try (
+            Connection dbConnection = DriverManager.getConnection(SQLITEDBPATH + dbFilename); Statement statement = dbConnection.createStatement()
+        ) {
+            statement.execute("PRAGMA foreign_keys = ON;");
+            dbConnection.setAutoCommit(false);
+
+            String sql = "INSERT INTO player(idpk, id, name, team, position) VALUES(?, ?, ?, ?, ?)";
+
+            try (PreparedStatement preparedStatement = dbConnection.prepareStatement(sql)) {
+                for (Player player: roster) {
+                    ResultSet results = statement.executeQuery("SELECT idpk FROM team WHERE team.name = '" + player.getTeam() + "';");
+
+                    if (results.next()) {
+                        int idpk = results.getInt(1);
+                        preparedStatement.setInt(1, idpk);
+                        preparedStatement.setString(2, player.getId());
+                        preparedStatement.setString(3, player.getName());
+                        preparedStatement.setString(4, player.getTeam());
+                        preparedStatement.setString(5, player.getPosition());
+                        preparedStatement.executeUpdate();
+                    } else {
+                        // Handle the case where the team was not found
+                        System.out.println("Error: Team " + player.getTeam() + " not found in the database.");
+                    }
+                }
+
+                dbConnection.commit();
+            } catch (SQLException e) {
+                dbConnection.rollback();
+                throw e;
+            }
         }
-        
-        db_connection.close();
     }
     public static void main(String[] args) {
         String filename = "data/mlb/teams.json";
         DatabaseWriter instance = new DatabaseWriter();
-        ArrayList<Address> result = instance.readAddressFromTxt(filename);
+        ArrayList < Address > result = instance.readAddressFromTxt(filename);
         System.out.println("result");
         System.out.println(result);
-      }
+    }
 }
