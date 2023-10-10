@@ -322,19 +322,15 @@ if (locationString != null && !locationString.isEmpty()) {
             "FOREIGN KEY(section) REFERENCES SECTION(id)" +
             ");";
     statement.execute(enrollmentTable);
+    // Trigger to set endDate to NULL for new faculty
+String setEndDateNullTrigger = "CREATE TRIGGER set_endDate_null BEFORE INSERT ON FACULTY FOR EACH ROW BEGIN UPDATE Faculty SET endDate = NULL WHERE endDate IS NEW.endDate; END;";
+statement.executeUpdate(setEndDateNullTrigger);
 
-statement.execute("CREATE TRIGGER IF NOT EXISTS set_future_grade_to_null " +
-                  "BEFORE INSERT ON enrollment " +
-                  "FOR EACH ROW BEGIN " +
-                  "  UPDATE enrollment SET grade = NULL WHERE NEW.section IN (SELECT id FROM SECTION WHERE startDate > CURRENT_DATE); " +
-                  "END;");
+// Trigger to set major to NULL for new students
+String setMajorNullForNewStudent = "CREATE TRIGGER set_major_null_for_new_student BEFORE INSERT ON STUDENT BEGIN UPDATE STUDENT SET major = NULL WHERE major IS NEW.major; END;";
+statement.executeUpdate(setMajorNullForNewStudent);
 
 
-                  statement.execute("CREATE TRIGGER IF NOT EXISTS set_endDate_to_null " +
-                  "BEFORE INSERT ON faculty " +
-                  "BEGIN " +
-                  "  UPDATE faculty SET endDate = NULL WHERE NEW.id = id; " +
-                  "END;");
 
     statement.close();
     conn.close();
@@ -661,8 +657,6 @@ public static void main(String[] args) {
 
     try {
         dbWriter.createTables(db_filename);
-        testTriggers();
-
         ArrayList<Departments> departmentsList = dbWriter.readDepartmentsFromTxt("data/luther/departments.txt");
         dbWriter.writeDepartmentTable(db_filename, departmentsList);
 
@@ -685,33 +679,13 @@ public static void main(String[] args) {
 
         dbWriter.writeSectionsTable(db_filename, sectionsList);
         dbWriter.writeEnrollmentTable(db_filename);
-    
+        //testTriggers();
+      
 
     } catch (SQLException | IOException e) {
         e.printStackTrace();
     }
 }
-public static void testTriggers() throws SQLException {
-    String db_filename = "luther.sqlite"; 
-    Connection db_connection = DriverManager.getConnection(SQLITEDBPATH + db_filename);
-Statement statement = db_connection.createStatement();
-statement.execute("INSERT INTO enrollment (student, section, grade) VALUES (1, 1, 'A')");
-ResultSet rs = statement.executeQuery("SELECT * FROM enrollment WHERE student = 1 AND section = 1");
-if (rs.next()) {
-    String grade = rs.getString("grade");
-    System.out.println("Grade for future course: " + grade);  
-}
-
-statement.execute("INSERT INTO faculty (name, endDate) VALUES ('John Doe', '2023-12-31')");
-rs = statement.executeQuery("SELECT * FROM faculty WHERE name = 'John Doe'");
-if (rs.next()) {
-    String endDate = rs.getString("endDate");
-    System.out.println("End date for new faculty: " + endDate);  
-}
-    db_connection.close();
-
-}
-
 
 
 }
