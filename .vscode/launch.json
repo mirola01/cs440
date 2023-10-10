@@ -1,0 +1,63 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "DBWriter",
+            "request": "launch",
+            "mainClass": "luther.DBWriter",
+            "projectName": "dbms-class-pub"
+        },
+        {
+            "type": "java",
+            "name": "DatabaseWriter",
+            "request": "launch",
+            "mainClass": "mlb.DatabaseWriter",
+            "projectName": "cs440_8bb76e58"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "DatabaseReaderGUI",
+            "request": "launch",
+            "mainClass": "mlb.DatabaseReaderGUI",
+            "projectName": "cs440_8bb76e58"
+        },
+        {
+            "type": "java",
+            "name": "DatabaseWriterDriver",
+            "request": "launch",
+            "mainClass": "mlb.DatabaseWriterDriver",
+            "projectName": "cs440_8bb76e58"
+        },
+        {
+            "type": "java",
+            "name": "FileReaderGUI",
+            "request": "launch",
+            "mainClass": "nba.FileReaderGUI",
+            "projectName": "cs440_8bb76e58"
+        },
+        {
+            "type": "java",
+            "name": "SQLTester",
+            "request": "launch",
+            "mainClass": "nba.SQLTester",
+            "projectName": "cs440_8bb76e58"
+        },
+        {
+            "type": "java",
+            "name": "SQLiteExampleMain",
+            "request": "launch",
+            "mainClass": "nba.SQLiteExampleMain",
+            "projectName": "cs440_8bb76e58"
+        }
+    ]
+}
