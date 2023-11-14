@@ -49,9 +49,10 @@ def execute_queries(db):
     courses_in_comp_sci = db.table('courses').search(Course.DeptId == comp_sci_dept_id)
     print("Courses in Computer Science Department:", courses_in_comp_sci)
 
-    # Query 2: Search enrollments for a specific course ID
-    enrollments_in_course_12 = db.table('enrollments').search(Enrollment.CourseId == '12')
-    print("Enrollments in Course 12:", enrollments_in_course_12)
+    # Query 2: Search grades for section 43
+    enrollments_in_section_43 = db.table('enrollments').search(Enrollment.SectionId == '43')
+    grades_in_section_43 = [(enrollment['StudentId'], enrollment['Grade']) for enrollment in enrollments_in_section_43]
+    print("Grades in Section 43:", grades_in_section_43)
 
     # Query 3: Count the number of sections for a specific course ID
     section_count_course_32 = db.table('sections').count(Section.CourseId == '32')
