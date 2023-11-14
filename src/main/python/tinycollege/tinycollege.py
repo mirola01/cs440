@@ -50,11 +50,11 @@ def execute_queries(db):
     print("Courses in Computer Science Department:", courses_in_comp_sci)
 
     # Query 2: Search enrollments for a specific course ID
-    enrollments_in_course_12 = db.table('enrollments').search(Enrollment.CourseId == 12)
+    enrollments_in_course_12 = db.table('enrollments').search(Enrollment.CourseId == '12')
     print("Enrollments in Course 12:", enrollments_in_course_12)
 
     # Query 3: Count the number of sections for a specific course ID
-    section_count_course_32 = db.table('sections').count(Section.CourseId == 32)
+    section_count_course_32 = db.table('sections').count(Section.CourseId == '32')
     print("Number of Sections for Course 32:", section_count_course_32)
 
     # Query 4: List all departments
@@ -62,7 +62,7 @@ def execute_queries(db):
     print("All Departments:", all_departments)
 
     # Query 5: Find a student by student ID
-    student_with_id_1 = db.table('students').get(Student.SId == 1)
+    student_with_id_1 = db.table('students').get(Student.SId == '1')
     print("Student with ID 1:", student_with_id_1)
 
     # Query 6: For each course, find the department name
@@ -71,7 +71,7 @@ def execute_queries(db):
         print(f"Course ID {course['CId']} is in Department: {dept_name}")
 
     # Query 7: Find all students enrolled in a specific section
-    enrolled_students_section_43 = db.table('enrollments').search(Enrollment.SectionId == 43)
+    enrolled_students_section_43 = db.table('enrollments').search(Enrollment.SectionId == '43')
     students_in_section_43 = [db.table('students').get(Student.SId == e['StudentId']) for e in enrolled_students_section_43]
     print("Students in Section 43:", students_in_section_43)
 
@@ -81,14 +81,14 @@ def execute_queries(db):
         print(f"Department: {dept['DName']}, Number of Students: {len(students_in_dept)}")
 
     # Query 9: Search sections of a course offered in a specific year
-    sections_course_32_2018 = db.table('sections').search((Section.CourseId == 32) & (Section.YearOffered == 2018))
+    sections_course_32_2018 = db.table('sections').search((Section.CourseId == '32') & (Section.YearOffered == '2018'))
     print("Sections of Course 32 offered in 2018:", sections_course_32_2018)
 
-    # Query 10: Find all courses a student is enrolled in
-    enrollments_student_4 = db.table('enrollments').search(Enrollment.StudentId == 4)
-    courses_student_4 = [(e, db.table('courses').get(Course.CId == e['CourseId'])['Title']) for e in enrollments_student_4]
-    print("Courses Student 4 is enrolled in:", courses_student_4)
-
+    # Query 10: Find students graduating in a 2021 and their departments:
+    grads_2021 = db.table('students').search(Query().GradYear == '2021')
+    for student in grads_2021:
+        dept = db.table('departments').get(Query().DId == student['MajorId'])
+        print("Students graduating in a 2021 and their departments:", student['SName'], dept['DName'])
 
 
 def main():
